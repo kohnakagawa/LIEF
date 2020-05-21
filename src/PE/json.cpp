@@ -364,7 +364,7 @@ void JsonVisitor::visit(const TLS& tls) {
   }
 
   if (tls.has_section()) {
-    this->node_["section"] = tls.section().name();
+    this->node_["section"] = escape_non_ascii(tls.section().name());
   }
 }
 
