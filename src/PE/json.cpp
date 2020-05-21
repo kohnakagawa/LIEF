@@ -509,7 +509,11 @@ void JsonVisitor::visit(const ResourceDirectory& resource_directory) {
 
 void JsonVisitor::visit(const ResourcesManager& resources_manager) {
   if (resources_manager.has_manifest()) {
-    this->node_["manifest"] = escape_non_ascii(resources_manager.manifest()) ;
+    try {
+      this->node_["manifest"] = resources_manager.manifest();
+    } catch (const LIEF::exception& e) {
+      LOG(WARNING) << e.what();
+    }
   }
 
   if (resources_manager.has_version()) {
