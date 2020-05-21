@@ -419,7 +419,7 @@ void JsonVisitor::visit(const CodeViewPDB& cvpdb) {
   this->visit(static_cast<const CodeView&>(cvpdb));
   this->node_["signature"] = cvpdb.signature();
   this->node_["age"]       = cvpdb.age();
-  this->node_["filename"]  = cvpdb.filename();
+  this->node_["filename"]  = escape_non_ascii(cvpdb.filename());
 }
 
 void JsonVisitor::visit(const Import& import) {
