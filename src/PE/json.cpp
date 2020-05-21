@@ -23,6 +23,26 @@
 namespace LIEF {
 namespace PE {
 
+std::string to_hex(const char c) {
+  std::stringstream ss;
+  ss << std::setfill('0') << std::setw(2) << std::hex << (0xff & (unsigned int)c);
+  return std::string("\\x") + ss.str();
+}
+
+std::string escape_non_ascii(const std::string& s) {
+  std::string result;
+  const auto len = s.size();
+  for (auto i = 0u; i < len; i++) {
+    const auto c = s[i];
+    if (c < 32 || c >= 127) {
+      result += to_hex(c);
+    } else {
+      result.push_back(c);
+    }
+  }
+  return result;
+}
+
 json to_json(const Object& v) {
   JsonVisitor visitor;
   visitor(v);
@@ -269,7 +289,7 @@ void JsonVisitor::visit(const Section& section) {
     types.emplace_back(to_string(t));
   }
 
-  this->node_["name"]                   = section.name();
+  this->node_["name"]                   = escape_non_ascii(section.name());
   this->node_["pointerto_relocation"]   = section.pointerto_relocation();
   this->node_["pointerto_line_numbers"] = section.pointerto_line_numbers();
   this->node_["numberof_relocations"]   = section.numberof_relocations();
@@ -489,7 +509,7 @@ void JsonVisitor::visit(const ResourceDirectory& resource_directory) {
 
 void JsonVisitor::visit(const ResourcesManager& resources_manager) {
   if (resources_manager.has_manifest()) {
-    this->node_["manifest"] = resources_manager.manifest();
+    this->node_["manifest"] = escape_non_ascii(resources_manager.manifest()) ;
   }
 
   if (resources_manager.has_version()) {
