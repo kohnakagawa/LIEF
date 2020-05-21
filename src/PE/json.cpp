@@ -273,7 +273,7 @@ void JsonVisitor::visit(const DataDirectory& data_directory) {
   this->node_["size"] = data_directory.size();
   this->node_["type"] = to_string(data_directory.type());
   if (data_directory.has_section()) {
-    this->node_["section"] = data_directory.section().name();
+    this->node_["section"] = escape_non_ascii(data_directory.section().name());
   }
 }
 
@@ -331,12 +331,12 @@ void JsonVisitor::visit(const Export& export_) {
   this->node_["major_version"] = export_.major_version();
   this->node_["minor_version"] = export_.minor_version();
   this->node_["ordinal_base"]  = export_.ordinal_base();
-  this->node_["name"]          = export_.name();
+  this->node_["name"]          = escape_non_ascii(export_.name());
   this->node_["entries"]       = entries;
 }
 
 void JsonVisitor::visit(const ExportEntry& export_entry) {
-  this->node_["name"]      = export_entry.name();
+  this->node_["name"]      = escape_non_ascii(export_entry.name());
   this->node_["ordinal"]   = export_entry.ordinal();
   this->node_["address"]   = export_entry.address();
   this->node_["is_extern"] = export_entry.is_extern();
@@ -510,7 +510,7 @@ void JsonVisitor::visit(const ResourceDirectory& resource_directory) {
 void JsonVisitor::visit(const ResourcesManager& resources_manager) {
   if (resources_manager.has_manifest()) {
     try {
-      this->node_["manifest"] = resources_manager.manifest();
+      this->node_["manifest"] = escape_non_ascii(resources_manager.manifest()) ;
     } catch (const LIEF::exception& e) {
       LOG(WARNING) << e.what();
     }
