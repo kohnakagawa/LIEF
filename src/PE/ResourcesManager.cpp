@@ -1013,6 +1013,10 @@ std::vector<ResourceDialog> ResourcesManager::dialogs(void) const {
 
     for (size_t j = 0; j < langs.size(); ++j) {
       const ResourceData* data_node = dynamic_cast<const ResourceData*>(&langs[j]);
+      if (!data_node) {
+        LOG(WARNING) << "Dialog is empty. Skipping";
+        continue;
+      }
       const std::vector<uint8_t>& content = data_node->content();
       VectorStream stream{content};
       stream.setpos(0);
