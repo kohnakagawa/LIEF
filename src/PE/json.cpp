@@ -274,6 +274,7 @@ void JsonVisitor::visit(const Section& section) {
   this->node_["pointerto_line_numbers"] = section.pointerto_line_numbers();
   this->node_["numberof_relocations"]   = section.numberof_relocations();
   this->node_["numberof_line_numbers"]  = section.numberof_line_numbers();
+  this->node_["entropy"]                = section.entropy();
   this->node_["characteristics"]        = characteristics;
   this->node_["types"]                  = types;
 }
