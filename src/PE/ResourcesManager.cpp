@@ -1005,6 +1005,10 @@ std::vector<ResourceDialog> ResourcesManager::dialogs(void) const {
   for (size_t i = 0; i < nodes.size(); ++i) {
 
     const ResourceDirectory* dialog = dynamic_cast<const ResourceDirectory*>(&nodes[i]);
+    if (!dialog) {
+      LOG(WARNING) << "Dialog is empty. Skipping";
+      continue;
+    }
     it_const_childs langs = dialog->childs();
 
     for (size_t j = 0; j < langs.size(); ++j) {
