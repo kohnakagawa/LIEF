@@ -774,10 +774,6 @@ std::vector<ResourceIcon> ResourcesManager::icons(void) const {
         throw corrupted("Group icon is empty");
       }
 
-      if (icon_group_content.empty()) {
-        throw corrupted("Group icon is empty");
-      }
-
       const pe_resource_icon_dir* group_icon_header = reinterpret_cast<const pe_resource_icon_dir*>(icon_group_content.data());
 
       VLOG(VDEBUG) << "Number of icons: " << std::dec << static_cast<uint32_t>(group_icon_header->count);
