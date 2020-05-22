@@ -485,6 +485,7 @@ void Parser::parse_symbols(void) {
     const pe_symbol& raw_symbol = this->stream_->peek<pe_symbol>(current_offset);
     Symbol symbol{&raw_symbol};
 
+    const auto stream_max_size = this->stream_->size();
     std::string name;
     if ((raw_symbol.Name.Name.Zeroes & 0xffff) != 0) {
       std::string shortname{raw_symbol.Name.ShortName, sizeof(raw_symbol.Name.ShortName)};
@@ -494,7 +495,7 @@ void Parser::parse_symbols(void) {
         this->binary_->header().pointerto_symbol_table() +
         this->binary_->header().numberof_symbols() * STRUCT_SIZES::Symbol16Size +
         raw_symbol.Name.Name.Offset;
-      symbol.name_ = this->stream_->peek_string_at(offset_name);
+      symbol.name_ = this->stream_->peek_string_at(offset_name, stream_max_size - offset_name);
     }
 
     if (symbol.section_number() > 0 and
