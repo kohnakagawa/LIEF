@@ -1,5 +1,6 @@
 /* Copyright 2017 R. Thomas
  * Copyright 2017 Quarkslab
+ * Copyright 2020 K. Nakagawa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +16,8 @@
  */
 #include <iomanip>
 
+#include "LIEF/PE/enums.hpp"
+#include "LIEF/PE/EnumToString.hpp"
 #include "LIEF/PE/signature/Signature.hpp"
 #include "LIEF/PE/signature/OIDToString.hpp"
 
@@ -54,9 +57,25 @@ void Signature::accept(Visitor& visitor) const {
   visitor.visit(*this);
 }
 
+uint32_t Signature::length(void) const {
+  return this->length_;
+}
+
+CERTIFICATE_REVISION Signature::revision(void) const {
+  return this->revision_;
+}
+
+CERTIFICATE_TYPE Signature::certificate_type(void) const {
+  return this->certificate_type_;
+}
+
 std::ostream& operator<<(std::ostream& os, const Signature& signature) {
   constexpr uint8_t wsize = 30;
   os << std::hex << std::left;
+
+  os << std::setw(wsize) << std::setfill(' ') << "Length: " << signature.length() << std::endl;
+  os << std::setw(wsize) << std::setfill(' ') << "Revision: " << to_string(signature.revision()) << std::endl;
+  os << std::setw(wsize) << std::setfill(' ') << "Certificate Type: " << to_string(signature.certificate_type()) << std::endl;
   os << std::setw(wsize) << std::setfill(' ') << "Version: "          << signature.version() << std::endl;
   os << std::setw(wsize) << std::setfill(' ') << "Digest Algorithm: " << oid_to_string(signature.digest_algorithm()) << std::endl;
 

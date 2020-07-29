@@ -1,5 +1,6 @@
 /* Copyright 2017 R. Thomas
  * Copyright 2017 Quarkslab
+ * Copyright 2020 K. Nakagawa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +19,8 @@
 
 #include "LIEF/Object.hpp"
 #include "LIEF/visibility.h"
+
+#include "LIEF/PE/enums.hpp"
 
 #include "LIEF/PE/signature/x509.hpp"
 #include "LIEF/PE/signature/SignerInfo.hpp"
@@ -39,6 +42,15 @@ class LIEF_API Signature : public Object {
   Signature(void);
   Signature(const Signature&);
   Signature& operator=(const Signature&);
+
+  //! @brief Specifies the length of the attribute certificate entry.
+  uint32_t length(void) const;
+
+  //! @brief Contains the certificate version number. For details, see the following text.
+  CERTIFICATE_REVISION revision(void) const;
+
+  //! @brief Specifies the type of content in bCertificate. For details, see the following text.
+  CERTIFICATE_TYPE     certificate_type(void) const;
 
   //! @brief Should be 1
   uint32_t version(void) const;
@@ -66,6 +78,10 @@ class LIEF_API Signature : public Object {
   LIEF_API friend std::ostream& operator<<(std::ostream& os, const Signature& signature);
 
   private:
+
+  uint32_t             length_;
+  CERTIFICATE_REVISION revision_;
+  CERTIFICATE_TYPE     certificate_type_;
 
   uint32_t          version_;
   oid_t             digest_algorithm_;

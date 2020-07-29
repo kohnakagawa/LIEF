@@ -1,5 +1,6 @@
 /* Copyright 2017 R. Thomas
  * Copyright 2017 Quarkslab
+ * Copyright 2020 K. Nakagawa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -739,6 +740,12 @@
 #undef VFT2_FONT_VECTOR
 #undef VFT2_UNKNOWN
 
+#undef WIN_CERT_REVISION_1_0
+#undef WIN_CERT_REVISION_2_0
 
+#undef WIN_CERT_TYPE_X509
+#undef WIN_CERT_TYPE_PKCS_SIGNED_DATA
+#undef WIN_CERT_TYPE_RESERVED_1
+#undef WIN_CERT_TYPE_PKCS1_SIGN
 
 #endif

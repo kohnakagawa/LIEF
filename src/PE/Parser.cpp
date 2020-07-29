@@ -866,8 +866,8 @@ void Parser::parse_signature(void) {
   std::vector<uint8_t> raw_signature = {signature_ptr, signature_ptr + signature_size};
 
   //TODO: Deal with header (+8)
-  this->binary_->signature_     = SignatureParser::parse(raw_signature);
-  this->binary_->has_signature_ = true;
+  this->binary_->signatures_     = SignatureParser::parse(raw_signature);
+  this->binary_->has_signatures_ = !this->binary_->signatures_.empty();
 }
 
 

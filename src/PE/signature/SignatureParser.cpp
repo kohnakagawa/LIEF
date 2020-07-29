@@ -1,5 +1,6 @@
 /* Copyright 2017 R. Thomas
  * Copyright 2017 Quarkslab
+ * Copyright 2020 K. Nakagawa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +31,7 @@
 #include "LIEF/exception.hpp"
 
 #include "LIEF/PE/utils.hpp"
+#include "LIEF/PE/Structures.hpp"
 
 #include "LIEF/PE/signature/SignatureParser.hpp"
 #include "LIEF/PE/signature/Signature.hpp"
@@ -42,30 +44,23 @@ SignatureParser::~SignatureParser(void) = default;
 SignatureParser::SignatureParser(void) = default;
 
 SignatureParser::SignatureParser(const std::vector<uint8_t>& data) :
-  signature_{},
+  signatures_{},
   p_{nullptr},
   end_{nullptr},
   signature_ptr_{nullptr},
   stream_{std::unique_ptr<VectorStream>(new VectorStream{data})}
 {
-
-  const uint8_t* sig = this->stream_->peek_array<uint8_t>(8, this->stream_->size() - 8, /* check */false);
-  if (sig != nullptr) {
-    this->signature_ptr_ = sig;
-    this->end_ = this->signature_ptr_ + this->stream_->size() - 8;
-    this->p_ = const_cast<uint8_t*>(this->signature_ptr_);
-    try {
-      this->parse_signature();
-    } catch (const std::exception& e) {
-      VLOG(VDEBUG) << e.what();
-    }
+  try {
+    this->parse_signatures();
+  } catch (const std::exception& e) {
+    VLOG(VDEBUG) << e.what();
   }
 }
 
 
-Signature SignatureParser::parse(const std::vector<uint8_t>& data) {
+std::vector<Signature> SignatureParser::parse(const std::vector<uint8_t>& data) {
   SignatureParser parser{data};
-  return parser.signature_;
+  return parser.signatures_;
 }
 
 size_t SignatureParser::current_offset(void) const {
@@ -302,7 +297,7 @@ std::string SignatureParser::get_content_info_type(void) {
 }
 
 
-void SignatureParser::parse_certificates(void) {
+void SignatureParser::parse_certificates(Signature& signature) {
  VLOG(VDEBUG) << "Parsing Certificates (offset: "
              << std::dec << this->current_offset()
              << ")";
@@ -330,7 +325,7 @@ void SignatureParser::parse_certificates(void) {
     mbedtls_x509_crt_info(buffer, sizeof(buffer), "", ca.get());
     VLOG(VDEBUG) << std::endl << buffer << std::endl;
 
-    this->signature_.certificates_.emplace_back(ca.get());
+    signature.certificates_.emplace_back(ca.get());
     this->p_ += ca->raw.len;
     ca.release();
   }
@@ -664,7 +659,7 @@ SignerInfo SignatureParser::get_signer_info(void) {
   // digestEncryptionAlgorithm
   // -------------------------
   if ((ret = mbedtls_asn1_get_alg_null(&(this->p_), this->end_, &alg_oid)) != 0) {
-      throw corrupted("Signer info corrupted");
+    throw corrupted("Signer info corrupted");
   }
   std::memset(oid_str, 0, sizeof(oid_str));
   mbedtls_oid_get_numeric_string(oid_str, sizeof(oid_str), &alg_oid);
@@ -675,7 +670,7 @@ SignerInfo SignatureParser::get_signer_info(void) {
   // encryptedDigest
   // ---------------
   if ((ret = mbedtls_asn1_get_tag(&(this->p_), this->end_, &tag, MBEDTLS_ASN1_OCTET_STRING)) != 0) {
-      throw corrupted("Signer info corrupted");
+    throw corrupted("Signer info corrupted");
   }
 
   signer_info.encrypted_digest_ = {this->p_, this->p_ + tag};
@@ -687,53 +682,71 @@ SignerInfo SignatureParser::get_signer_info(void) {
 
 }
 
-void SignatureParser::parse_signature(void) {
-  this->parse_header();
+void SignatureParser::parse_signatures(void) {
+  const auto end_pos = this->stream_->size();
+  while (this->stream_->pos() < end_pos) {
+    Signature signature;
 
-  // Version
-  // =======
-  int32_t version = this->get_signed_data_version();
-  this->signature_.version_ = static_cast<uint32_t>(version);
+    const auto cur_top = this->stream_->pos();
+    signature.length_ = this->stream_->read<uint32_t>();
+    signature.revision_ = static_cast<CERTIFICATE_REVISION>(this->stream_->read<int16_t>());
+    signature.certificate_type_ = static_cast<CERTIFICATE_TYPE>(this->stream_->read<int16_t>());
+    const auto cur_end = cur_top + signature.length_;
+    const auto content_len = cur_end - this->stream_->pos();
 
-  // Algo (digestAlgorithms)
-  // =======================
-  try {
-    this->signature_.digest_algorithm_ = this->get_signed_data_digest_algorithms();
-  }
-  catch (const corrupted& c) {
-    LOG(ERROR) << c.what();
-  }
+    this->signature_ptr_ = this->stream_->peek_array<uint8_t>(this->stream_->pos(), content_len, /* check */ false);
+    this->end_ = this->signature_ptr_ + content_len;
+    this->p_   = const_cast<uint8_t*>(this->signature_ptr_);
 
-  // contentInfo
-  // |_ contentType
-  // |_ content (SpcIndirectDataContent)
-  // ===================================
-  try {
-    this->signature_.content_info_ = this->parse_content_info();
-  }
-  catch (const corrupted& c) {
-    LOG(ERROR) << c.what();
-  }
+    this->parse_header();
 
-  // Certificates
-  // ============
-  try {
-    this->parse_certificates();
-  }
-  catch (const corrupted& c) {
-    LOG(ERROR) << c.what();
-  }
+    // Version
+    // =======
+    signature.version_ = static_cast<uint32_t>(this->get_signed_data_version());
 
+    // Algo (digestAlgorithms)
+    // =======================
+    try {
+      signature.digest_algorithm_ = this->get_signed_data_digest_algorithms();
+    }
+    catch (const corrupted& c) {
+      LOG(ERROR) << c.what();
+    }
 
-  // signerInfo
-  // ==========
-  try {
-    this->signature_.signer_info_ = this->get_signer_info();
+    // contentInfo
+    // |_ contentType
+    // |_ content (SpcIndirectDataContent)
+    // ===================================
+    try {
+      signature.content_info_ = this->parse_content_info();
+    }
+    catch (const corrupted& c) {
+      LOG(ERROR) << c.what();
+    }
+
+    // Certificates
+    // ============
+    try {
+      this->parse_certificates(signature);
+    }
+    catch (const corrupted& c) {
+      LOG(ERROR) << c.what();
+    }
+
+    // signerInfo
+    // ==========
+    try {
+      signature.signer_info_ = this->get_signer_info();
+    }
+    catch (const corrupted& c) {
+      LOG(ERROR) << c.what();
+    }
+
+    this->signatures_.push_back(signature);
+
+    this->stream_->setpos(cur_end);
+    this->stream_->align(8);
   }
-  catch (const corrupted& c) {
-    LOG(ERROR) << c.what();
-  }
-  VLOG(VDEBUG) << "Signature: " << std::endl << this->signature_;
 }
 
 

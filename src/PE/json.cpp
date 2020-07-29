@@ -145,10 +145,14 @@ void JsonVisitor::visit(const Binary& binary) {
 
 
   // Signature
-  if (binary.has_signature()) {
-    JsonVisitor visitor;
-    visitor(binary.signature());
-    this->node_["signature"] = visitor.get();
+  if (binary.has_signatures()) {
+    std::vector<json> signatures;
+    for (const auto& sig : binary.signatures()) {
+      JsonVisitor visitor;
+      visitor(sig);
+      signatures.emplace_back(visitor.get());
+    }
+    this->node_["signatures"] = signatures;
   }
 
   std::vector<json> symbols;
@@ -718,6 +722,9 @@ void JsonVisitor::visit(const Signature& signature) {
     crts.emplace_back(crt_visitor.get());
   }
 
+  this->node_["length"]       = signature.length();
+  this->node_["revision"]     = to_string(signature.revision());
+  this->node_["type"]         = to_string(signature.certificate_type());
   this->node_["version"]      = signature.version();
   this->node_["content_info"] = content_info_visitor.get();
   this->node_["signer_info"]  = signer_info_visitor.get();

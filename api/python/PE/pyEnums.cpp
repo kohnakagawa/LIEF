@@ -1,5 +1,6 @@
 /* Copyright 2017 R. Thomas
  * Copyright 2017 Quarkslab
+ * Copyright 2020 K. Nakagawa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -925,6 +926,16 @@ void init_enums(py::module& m) {
     .value(PY_ENUM(LIEF::PE::POGO_SIGNATURES::POGO_UNKNOWN))
     .value(PY_ENUM(LIEF::PE::POGO_SIGNATURES::POGO_LCTG))
     .value(PY_ENUM(LIEF::PE::POGO_SIGNATURES::POGO_PGI));
+
+  LIEF::enum_<LIEF::PE::CERTIFICATE_REVISION>(m, "CERTIFICATE_REVISION")
+    .value(PY_ENUM(LIEF::PE::CERTIFICATE_REVISION::WIN_CERT_REVISION_1_0))
+    .value(PY_ENUM(LIEF::PE::CERTIFICATE_REVISION::WIN_CERT_REVISION_2_0));
+
+  LIEF::enum_<LIEF::PE::CERTIFICATE_TYPE>(m, "CERTIFICATE_TYPE")
+    .value(PY_ENUM(LIEF::PE::CERTIFICATE_TYPE::WIN_CERT_TYPE_X509))
+    .value(PY_ENUM(LIEF::PE::CERTIFICATE_TYPE::WIN_CERT_TYPE_PKCS_SIGNED_DATA))
+    .value(PY_ENUM(LIEF::PE::CERTIFICATE_TYPE::WIN_CERT_TYPE_RESERVED_1))
+    .value(PY_ENUM(LIEF::PE::CERTIFICATE_TYPE::WIN_CERT_TYPE_PKCS1_SIGN));
 }
 
 }

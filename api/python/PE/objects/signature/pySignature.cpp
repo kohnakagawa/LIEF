@@ -1,5 +1,6 @@
 /* Copyright 2017 R. Thomas
  * Copyright 2017 Quarkslab
+ * Copyright 2020 K. Nakagawa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +36,18 @@ template<>
 void create<Signature>(py::module& m) {
 
   py::class_<Signature, LIEF::Object>(m, "Signature")
+
+    .def_property_readonly("length",
+        &Signature::length,
+        "Specifies the length of the attribute certificate entry.")
+
+    .def_property_readonly("revision",
+        &Signature::revision,
+        "Contains the certificate version number. For details, see the following text.")
+
+    .def_property_readonly("certificate_type",
+        &Signature::certificate_type,
+        "Specifies the type of content in bCertificate. For details, see the following text.")
 
     .def_property_readonly("version",
         &Signature::version,

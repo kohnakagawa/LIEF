@@ -430,7 +430,9 @@ void Hash::visit(const ResourceStringTable& string_table) {
 }
 
 void Hash::visit(const Signature& signature) {
-
+  this->process(signature.length());
+  this->process(signature.revision());
+  this->process(signature.certificate_type());
   this->process(signature.version());
   this->process(signature.digest_algorithm());
   this->process(signature.content_info());
