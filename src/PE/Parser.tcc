@@ -163,7 +163,7 @@ void Parser::parse_data_directories(void) {
   // Signature
   if (this->binary_->data_directory(DATA_DIRECTORY::CERTIFICATE_TABLE).RVA() > 0) {
     try {
-      this->parse_signature();
+      this->parse_signatures();
     } catch (const exception& e) {
       LOG(WARNING) << e.what();
     }

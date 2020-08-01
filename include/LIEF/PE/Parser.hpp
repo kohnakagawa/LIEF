@@ -99,7 +99,7 @@ class LIEF_API Parser : public LIEF::Parser {
   void parse_resources(void);
   void parse_string_table(void);
   void parse_symbols(void);
-  void parse_signature(void);
+  void parse_signatures(void);
   void parse_overlay(void);
   void parse_dos_stub(void);
   void parse_rich_header(void);

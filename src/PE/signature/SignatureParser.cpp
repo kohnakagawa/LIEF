@@ -29,6 +29,7 @@
 #include <cstring>
 
 #include "LIEF/exception.hpp"
+#include "LIEF/PE/EnumToString.hpp"
 
 #include "LIEF/PE/utils.hpp"
 #include "LIEF/PE/Structures.hpp"
@@ -693,6 +694,10 @@ void SignatureParser::parse_signatures(void) {
     signature.certificate_type_ = static_cast<CERTIFICATE_TYPE>(this->stream_->read<int16_t>());
     const auto cur_end = cur_top + signature.length_;
     const auto content_len = cur_end - this->stream_->pos();
+
+    VLOG(VDEBUG) << "Signature Size: 0x" << std::hex << signature.length();
+    VLOG(VDEBUG) << "Signature Revision " << to_string(signature.revision());
+    VLOG(VDEBUG) << "Signature Type " << to_string(signature.certificate_type());
 
     this->signature_ptr_ = this->stream_->peek_array<uint8_t>(this->stream_->pos(), content_len, /* check */ false);
     this->end_ = this->signature_ptr_ + content_len;
